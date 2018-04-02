@@ -1,0 +1,9 @@
+
+string path = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal);
+
+string fileName = path + "/sample.txt";
+
+//Conver.ToString()
+System.IO.File.WriteAllText(fileName, *);
+
+System.IO.File.ReadAllText(fileName)
