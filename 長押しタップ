@@ -1,0 +1,77 @@
+using Android.Views;
+///////////////////////////
+,View.IOnTouchListener
+///////////////////////////
+button.SetOnTouchListener(this);
+///////////////////////////
+
+System.Threading.CancellationTokenSource cancellationTokenSource;
+
+        public bool OnTouch(View v, MotionEvent e)
+        {
+            var textView = FindViewById<TextView>(Resource.Id.textView1);
+
+            switch (e.Action)
+            {
+                case MotionEventActions.Down:
+                    textView.Text = string.Format("{0} clicks!", count++);
+                    if (cancellationTokenSource != null)
+                        break;
+
+                    cancellationTokenSource = new System.Threading.CancellationTokenSource();
+                    var token = cancellationTokenSource.Token;
+
+                    // whileループは別スレッドで回す
+                    System.Threading.Tasks.Task.Factory.StartNew(() =>
+                    {
+                        var stopwatch = Stopwatch.StartNew();
+                        while (stopwatch.ElapsedMilliseconds < 100 &&
+                                token.IsCancellationRequested == false)
+                        {
+                            System.Threading.Tasks.Task.Delay(TimeSpan.FromMilliseconds(10)).Wait();//ただ待つだけ
+                        }
+
+                        while (token.IsCancellationRequested == false)
+                        {
+                            // カウント表示の更新はUIスレッドから行う必要がある
+                            RunOnUiThread(() => {
+                                textView.Text = string.Format("{0} clicks!", count++);//ひたすらカウントする
+                            });
+                            
+                            if (count % 1000 == 10)
+                            {
+                                flag = !flag;
+                            }
+                            //*
+                            if (count%100==10 && flag==true)
+                            {
+                                var intent = new Intent(this, typeof(Activity1));
+                                StartActivity(intent);
+                                if (cancellationTokenSource != null)
+                                {
+                                    cancellationTokenSource.Cancel();
+                                }
+                                break;
+                            }
+                            
+
+                            System.Threading.Tasks.Task.Delay(TimeSpan.FromMilliseconds(100)).Wait();//ただ待つだけ
+                        }
+                    }, token)
+                    .ContinueWith(_ =>
+                    {
+                        // 後始末
+                        cancellationTokenSource.Dispose();
+                        cancellationTokenSource = null;
+                    });
+                    break;
+                case MotionEventActions.Up:
+                    if (cancellationTokenSource != null)
+                    {
+                        cancellationTokenSource.Cancel();
+                    }
+                    break;
+            }
+
+            return true;
+        }*/
